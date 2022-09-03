@@ -7,7 +7,7 @@ where K: Clone
 	left:  Branch<K>,
 	mid:   Branch<K>,
 	right: Branch<K>,
-	ch:    char,
+	pub ch:    char,
 	value: Option<K>
 }
 type Branch<K> = Option<Box<Trie<K>>>;
@@ -26,6 +26,7 @@ where K: Clone
 			ch: chs.next().unwrap(),
 			value:None
 		};
+		println!("Chars {:?}",chs);
 		Trie::_insert_str(Some(&mut trie),&mut chs, &value);
 		trie
 	}
@@ -49,44 +50,46 @@ where K: Clone
 		while let Some(branch) = head{
 			if let Some(_ch) = chs.peek(){
 				let ch = *_ch;
-				if ch > branch.ch{
-					if branch.right.is_none(){
-						if chs.next().is_none(){  //move o iterador
-							Trie::_insert_ch_with_key(&mut branch.right, ch, value)
-						}else{
-							Trie::_insert_ch(&mut branch.right, ch);
-						}
+				chs.next();
+				if branch.mid.is_none(){
+					if chs.peek().is_none(){
+						Trie::_insert_ch_with_key(&mut branch.mid, ch, value);
+					}else{
+						Trie::_insert_ch(&mut branch.mid, ch);
 					}
-					head = branch.right.as_deref_mut();
-				} 
-				else if ch < branch.ch{
-					if branch.left.is_none(){
-						if chs.next().is_none(){  //move o iterador
-							Trie::_insert_ch_with_key(&mut branch.left, ch, value)
-						}else{
-							Trie::_insert_ch(&mut branch.left, ch);
-						}
-					}
-					head = branch.left.as_deref_mut();
-				}
-				else{
-					if branch.mid.is_none(){
-						if chs.peek().is_none(){
-							Trie::_insert_ch_with_key(&mut branch.left, ch, value)
-						}else{
-							Trie::_insert_ch(&mut branch.mid, ch);
-						}
-					}
-					chs.next();
 					head = branch.mid.as_deref_mut();
+				}else{
+					if ch > branch.ch{
+						if branch.right.is_none(){
+							if chs.peek().is_none(){  //move o iterador
+								Trie::_insert_ch_with_key(&mut branch.right, ch, value)
+							}else{
+								Trie::_insert_ch(&mut branch.right, ch);
+							}
+						}
+						head = branch.right.as_deref_mut();
+					} 
+					else if ch < branch.ch{
+						if branch.left.is_none(){
+							if chs.peek().is_none(){  //move o iterador
+								Trie::_insert_ch_with_key(&mut branch.left, ch, value);
+							}else{
+								Trie::_insert_ch(&mut branch.left, ch);
+							}
+						}
+						head = branch.left.as_deref_mut();
+					}else{
+						head = branch.mid.as_deref_mut();
+					}
 				}
 			}else{
-				println!("nunca vai chegar aqui");
+				println!("nunca vai chegar aqui {}",branch.ch);
 				break;
 			}
-		} 
+		}
 	}
 	fn _insert_ch(head:&mut Branch<K>,ch:char){
+		//println!("inserted {}",ch);
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -97,6 +100,7 @@ where K: Clone
 		*head = Some(Box::new(next));
 	}
 	fn _insert_ch_with_key(head:&mut Branch<K>,ch:char,value:&K){
+		//println!("inserted {} and key",ch);
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -132,7 +136,6 @@ where K: Clone
 					head = &branch.mid;
 				}
 			}else{
-				println!("nunca chega aqui");
 				break;
 			}
 		}
@@ -153,12 +156,14 @@ where K: Clone
 		let mut res:Vec<K> = Vec::new();
 		let mut chs = word.chars().peekable();
 		if let Some(head) = Trie::peek_travel(&self, &mut chs){
-			if let Some(val) = &head.value{
-				res.push(val.clone());
+			if let Some(mid_head) = &head.mid{
+				if let Some(val) = &head.value{
+					res.push(val.clone());
+				}
+				Trie::_get_prefix(&mut res,&mid_head.left);
+				Trie::_get_prefix(&mut res,&mid_head.mid);
+				Trie::_get_prefix(&mut res,&mid_head.right);
 			}
-			Trie::_get_prefix(&mut res,&head.left);
-			Trie::_get_prefix(&mut res,&head.mid);
-			Trie::_get_prefix(&mut res,&head.right);
 		}
 		res
 	}
@@ -171,5 +176,59 @@ where K: Clone
 			Trie::_get_prefix(res,&head.mid);
 			Trie::_get_prefix(res,&head.right);
 		}
+	}
+	fn _drop(branch: &mut Branch<K>){
+		if let Some(mut head) = branch.take(){
+			Trie::_drop(&mut head.left);
+			Trie::_drop(&mut head.mid);
+			Trie::_drop(&mut head.right);
+		}
+	}
+}
+
+
+impl<K> Drop for Trie<K>
+where K: Clone
+{
+    fn drop(&mut self){
+		Trie::_drop(&mut self.left);
+		Trie::_drop(&mut self.mid);
+		Trie::_drop(&mut self.right);
+    }
+}
+
+
+#[cfg(test)]
+mod tests{
+	use super::*;
+	#[test]
+	fn base_trie(){
+		let v1 = (String::from("carro"),1);
+		let v2 = (String::from("carinha"),2);
+		let v3 = (String::from("cramunhão"),3);
+
+		let mut trie = Trie::init(&v1.0, v1.1);
+		trie.insert_str(&v2.0, &v2.1);
+		trie.insert_str(&v3.0, &v3.1);
+		let res = trie.get("carro");
+		assert_eq!(res, Some(&1));
+		let res = trie.get("carinha");
+		assert_eq!(res, Some(&2));
+		let res = trie.get("cari");
+		assert_eq!(res, None);
+	}
+	#[test]
+	fn prefix_fetch(){
+		let v1 = (String::from("carro"),1);
+		let v2 = (String::from("carinha"),2);
+		let v3 = (String::from("cramunhão"),3);
+
+		let mut trie = Trie::init(&v1.0, v1.1);
+		trie.insert_str(&v2.0, &v2.1);
+		trie.insert_str(&v3.0, &v3.1);
+
+
+		let res = trie.get_prefix("ca");
+		assert_eq!(res, vec![2,1]);
 	}
 }
