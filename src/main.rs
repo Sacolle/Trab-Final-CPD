@@ -3,7 +3,10 @@
 mod estruturas;
 mod io;
 
-use crate::io::{tui,tui::Act};
+use crate::io::{
+	tui, tui::Act,
+	parser::{parse_tags,parse_player_and_user}
+};
 
 use std::error;
 
@@ -15,6 +18,10 @@ fn main() {
 }
 
 fn program_loop()->Result<(),Box<dyn error::Error>>{
+	let (player_table,user_table) = parse_player_and_user()?;
+	let tags_table = parse_tags()?;
+
+
 	loop{
 		match tui::get_action()? {
 			Act::NameSearch(name) => {

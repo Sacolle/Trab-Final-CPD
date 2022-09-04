@@ -3,6 +3,10 @@ Este trabalho tem por objetivo ler um dataset disponibilizado e realizar o parse
 
 Elementos a serem implementados
 - Parse dos arquivos
-	- criação dos structs
-	- inclusão da média das avaliações
-- Implementação da CLI usando a biblioteca [dialoguer](https://github.com/mitsuhiko/dialoguer)
+	- ~~criação dos structs~~
+	- ~~inclusão da média das avaliações~~
+	- ~~inicialização das HashTables~~
+	- Inicialização da Trie
+- Implementação da CLI usando a biblioteca [dialoguer](https://github.com/mitsuhiko/dialoguer) e [ansi_term](https://github.com/ogham/rust-ansi-term)
+	- ~~CLI~~
+	- Display do output dos Queries

@@ -41,8 +41,6 @@ struct SerdeTag{
 	tag: String
 }
 
-
-
 impl Player{
 	fn new(player:SerdePlayer)-> Self{
 		Player {
@@ -72,7 +70,7 @@ impl User{
 }
 
 
-fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usize, User>),Box<dyn Error>>{
+pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usize, User>),Box<dyn Error>>{
 	let mut player_table: HashTable<usize, Player> = HashTable::new(25000,hash_usize);
 	let mut user_table: HashTable<usize, User> = HashTable::new(25000,hash_usize);
 
