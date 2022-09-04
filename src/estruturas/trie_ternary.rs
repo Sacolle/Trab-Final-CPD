@@ -222,13 +222,16 @@ mod tests{
 		let v1 = (String::from("carro"),1);
 		let v2 = (String::from("carinha"),2);
 		let v3 = (String::from("cramunhão"),3);
+		let v4 = (String::from("capitão"),4);
 
 		let mut trie = Trie::init(&v1.0, v1.1);
 		trie.insert_str(&v2.0, &v2.1);
 		trie.insert_str(&v3.0, &v3.1);
+		trie.insert_str(&v4.0, &v4.1);
 
 
 		let res = trie.get_prefix("ca");
-		assert_eq!(res, vec![2,1]);
+		let target = vec![1,2,4];
+		assert!(target.iter().all(|x|res.contains(x)));
 	}
 }

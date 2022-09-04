@@ -5,4 +5,4 @@ Elementos a serem implementados
 - Parse dos arquivos
 	- criação dos structs
 	- inclusão da média das avaliações
-- Implementação da TUI usando a biblioteca [dialoger](https://github.com/mitsuhiko/dialoguer)
+- Implementação da CLI usando a biblioteca [dialoguer](https://github.com/mitsuhiko/dialoguer)
