@@ -1,4 +1,9 @@
-use crate::estruturas::hash_table::{HashTable,hash_usize,hash_string};
+use crate::estruturas::{
+	hash_table::{HashTable,hash_usize,hash_string},
+	trie_ternary::Trie
+};
+
+
 
 use serde::Deserialize;
 use csv::Reader;
@@ -14,11 +19,11 @@ struct SerdePlayer{
 
 #[derive(Debug)]
 pub struct Player{
-	id: usize,
-	name: String,
-	positions: String,
-	rating: f64,
-	count: i32
+	pub id: usize,
+	pub name: String,
+	pub positions: String,
+	pub rating: f64,
+	pub count: i32
 }
 
 #[derive(Deserialize)]
@@ -30,8 +35,8 @@ struct SerdeUser{
 
 #[derive(Debug)]
 pub struct User{
-	id:usize,
-	ratings: Vec<(usize,f64)>
+	pub id:usize,
+	pub ratings: Vec<(usize,f64)>
 }
 
 #[derive(Deserialize)]
@@ -70,9 +75,12 @@ impl User{
 }
 
 
-pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usize, User>),Box<dyn Error>>{
+pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usize, User>, Trie<usize>),Box<dyn Error>>{
 	let mut player_table: HashTable<usize, Player> = HashTable::new(25000,hash_usize);
 	let mut user_table: HashTable<usize, User> = HashTable::new(25000,hash_usize);
+	
+	//Não vou mentir, isso eh meio q u hackizinho pq eu não quero reescrever a trie para poder inicializar ela nula
+	let mut trie: Trie<usize> = Trie::init("Lionel Andrés Messi Cuccittini", 0);
 
 	//lê o csv dos players
 	let mut rdr = Reader::from_path("data/players.csv")?;
@@ -80,6 +88,10 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 
 	for _player in players {
 		let player = Player::new(_player?);
+
+		//inserção do player na trie
+		trie.insert_str(&player.name, &player.id);
+
 		player_table.insert(player.id, player);
 	}
 
@@ -103,7 +115,7 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 			user_table.insert(user.id, user);
 		}
 	}
-	Ok((player_table,user_table))
+	Ok((player_table, user_table, trie))
 }
 
 

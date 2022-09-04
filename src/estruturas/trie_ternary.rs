@@ -1,7 +1,7 @@
 use std::{str::Chars, iter::Peekable};
 
 
-struct Trie<K>
+pub struct Trie<K>
 where K: Clone 
 {
 	left:  Branch<K>,
@@ -26,7 +26,6 @@ where K: Clone
 			ch: chs.next().unwrap(),
 			value:None
 		};
-		println!("Chars {:?}",chs);
 		Trie::_insert_str(Some(&mut trie),&mut chs, &value);
 		trie
 	}

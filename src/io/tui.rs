@@ -1,7 +1,8 @@
 use dialoguer::{FuzzySelect, theme::ColorfulTheme, Input};
-use ansi_term::{Style, Color::{Black,White}};
+use ansi_term::{Style, Color::{Black, White}};
 
 use std::error::Error;
+
 
 const OPTIONS:[&'static str;5] = ["Player Search","User Reviews","Top 10 at position","Search Player by Tags","Exit"];
 pub enum Act{
@@ -61,3 +62,4 @@ fn get_val(prompt: &str) -> Result<String,Box<dyn Error>>{
 		.with_prompt(prompt)
 		.interact_text()?)
 }
+
