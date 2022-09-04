@@ -1,4 +1,4 @@
-struct HashTable<K,T>
+pub struct HashTable<K,T>
 where K: PartialEq
 {
 	vec: Vec<Link<K,T>>,
@@ -40,15 +40,27 @@ where K: PartialEq
 		);
 		*head = Some(new_node);
 	}
-	pub fn get(&self,key: K)->Option<&T>{
-		let idx = (self.hash)(&key,self.size);
+	pub fn get(&self,key: &K)->Option<&T>{
+		let idx = (self.hash)(key,self.size);
 		let mut head = &self.vec[idx];
 
 		while let Some(node) = head{
-			if node.key == key{
+			if &node.key == key{
 				return Some(&node.value);
 			}
 			head = &node.next;
+		}
+		None
+	}
+	pub fn get_mut(&mut self,key: &K)->Option<&mut T>{
+		let idx = (self.hash)(key,self.size);
+		let mut head = &mut self.vec[idx];
+
+		while let Some(node) = head{
+			if &node.key == key{
+				return Some(&mut node.value);
+			}
+			head = &mut node.next;
 		}
 		None
 	}
@@ -78,6 +90,19 @@ where K: PartialEq
     }
 }
 
+pub fn hash_usize(key:&usize,size:usize)->usize{
+	key%size
+}
+
+pub fn hash_string(key:&String,size:usize)->usize{
+	// p = 31
+	let mut hash:usize = 0;
+	for byte in key.as_bytes(){
+		hash = (31 * hash + *byte as usize) % size
+	}
+	hash
+}
+
 
 #[cfg(test)]
 #[allow(unused_imports)]
@@ -93,8 +118,8 @@ mod tests{
 		hash_table.insert(4, 0);
 		hash_table.insert(5, 5);
 
-		let hit = hash_table.get(5);
-		let miss = hash_table.get(7);
+		let hit = hash_table.get(&5);
+		let miss = hash_table.get(&7);
 		assert_eq!(hit,Some(&5));
 		assert_eq!(miss,None);
 	}

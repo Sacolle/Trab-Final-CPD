@@ -7,7 +7,7 @@ where K: Clone
 	left:  Branch<K>,
 	mid:   Branch<K>,
 	right: Branch<K>,
-	pub ch:    char,
+	ch:    char,
 	value: Option<K>
 }
 type Branch<K> = Option<Box<Trie<K>>>;
