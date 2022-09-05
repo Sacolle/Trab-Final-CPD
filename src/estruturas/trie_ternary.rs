@@ -12,22 +12,17 @@ where K: Clone
 }
 type Branch<K> = Option<Box<Trie<K>>>;
 
-static mut C:i32 = 0;
-
 impl<K> Trie<K>
 where K: Clone 
 {
-	pub fn init(seed:&str,value: K)->Self{
-		assert!(!seed.is_empty());
-		let mut chs = seed.chars().peekable();
-		let mut trie:Trie<K> = Trie{
+	pub fn init()->Self{
+		let trie:Trie<K> = Trie{
 			left:None,
 			mid:None,
 			right:None,
 			ch: ' ',
 			value:None
 		};
-		//Trie::_insert_str(&mut trie ,&mut chs, &value);
 		trie
 	}
 
@@ -44,7 +39,6 @@ where K: Clone
 			head.value = Some(value.clone());
 			return;
 		}
-		
 		let f_ch = chs.next().unwrap();
 
 		//a função mut_travel retorna o nó anterior ao fim,
@@ -53,31 +47,16 @@ where K: Clone
 			return;
 		}
 
-		if f_ch > head.ch{
-			//right
-			if chs.peek().is_none(){
-				Trie::_insert_ch_with_key(&mut head.right, f_ch, value);
-			}else{
-				Trie::_insert_ch(&mut head.right, f_ch);
-			}
-			head = head.right.as_deref_mut().unwrap();
-		}else if f_ch < head.ch{
-			//left
-			if chs.peek().is_none(){
-				Trie::_insert_ch_with_key(&mut head.left, f_ch, value);
-			}else{
-				Trie::_insert_ch(&mut head.left, f_ch);
-			}
-			head = head.left.as_deref_mut().unwrap();
+		let n_head = if f_ch > head.ch{ &mut head.right }
+		else if f_ch < head.ch{ &mut head.left }
+		else{ &mut head.mid };
+
+		if chs.peek().is_none(){
+			Trie::_insert_ch_with_key( n_head, f_ch, value);
 		}else{
-			//mid
-			if chs.peek().is_none(){
-				Trie::_insert_ch_with_key(&mut head.mid, f_ch, value);
-			}else{
-				Trie::_insert_ch(&mut head.mid, f_ch);
-			}
-			head = head.mid.as_deref_mut().unwrap();
+			Trie::_insert_ch( n_head, f_ch);
 		}
+		head = n_head.as_deref_mut().unwrap();
 
 		while let Some(ch) = chs.next(){
 			if !head.mid.is_none(){
@@ -91,94 +70,9 @@ where K: Clone
 			head = head.mid.as_deref_mut().unwrap();
 		}
 	}
-	/*
-	pub fn insert_str(&mut self, word:&str, value: &K){
-		let mut chs = word.chars().peekable();
-		if chs.peek().is_none(){
-			return;
-		}
-		/*
-		let first_ch = chs.peek().unwrap();
-		let head = if *first_ch > self.ch {
-			self.right.as_deref_mut()
-		}else if *first_ch < self.ch {
-			self.left.as_deref_mut()
-		}else{
-			chs.next();
-			self.mid.as_deref_mut()
-		};*/
-		let first_ch = chs.next().unwrap();
-		let head = if first_ch > self.ch {
-			if self.right.is_none(){
-				if chs.peek().is_none(){
-					Trie::_insert_ch_with_key(&mut self.right, first_ch, value);
-				}else{
-					Trie::_insert_ch(&mut self.right, first_ch);
-				}
-			}
-			self.right.as_deref_mut()
-		}else if first_ch < self.ch {
-			if self.left.is_none(){
-				if chs.peek().is_none(){
-					Trie::_insert_ch_with_key(&mut self.left, first_ch, value);
-				}else{
-					Trie::_insert_ch(&mut self.left, first_ch);
-				}
-			}
-			self.left.as_deref_mut()
-		}else{
-			self.mid.as_deref_mut()
-		};
-
-		Trie::_insert_str(head, &mut chs, value);
-	}
-
-	fn _insert_str(mut head:Option<&mut Trie<K>>,chs:&mut Peekable<Chars>,value: &K){
-		while let Some(branch) = head{
-		//unsafe{print!("{} ",C)}
-			if let Some(_ch) = chs.peek(){
-				let ch = *_ch;
-				chs.next();
-				if branch.mid.is_none(){
-					if chs.peek().is_none(){
-						Trie::_insert_ch_with_key(&mut branch.mid, ch, value);
-					}else{
-						Trie::_insert_ch(&mut branch.mid, ch);
-					}
-					head = branch.mid.as_deref_mut();
-				}else{
-					if ch > branch.ch{
-						if branch.right.is_none(){
-							if chs.peek().is_none(){  //move o iterador
-								Trie::_insert_ch_with_key(&mut branch.right, ch, value)
-							}else{
-								Trie::_insert_ch(&mut branch.right, ch);
-							}
-						}
-						head = branch.right.as_deref_mut();
-					} 
-					else if ch < branch.ch{
-						if branch.left.is_none(){
-							if chs.peek().is_none(){  //move o iterador
-								Trie::_insert_ch_with_key(&mut branch.left, ch, value);
-							}else{
-								Trie::_insert_ch(&mut branch.left, ch);
-							}
-						}
-						head = branch.left.as_deref_mut();
-					}else{
-						head = branch.mid.as_deref_mut();
-					}
-				}
-			}else{
-				//println!("nunca vai chegar aqui {}",branch.ch);
-				break;
-			}
-		}
-	} */
 	fn _insert_ch(head:&mut Branch<K>,ch:char){
-		println!("insert char: {}",ch);
-		unsafe{C += 1;}
+		//println!("insert char: {}",ch);
+		//unsafe{C += 1;}
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -189,8 +83,8 @@ where K: Clone
 		*head = Some(Box::new(next));
 	}
 	fn _insert_ch_with_key(head:&mut Branch<K>,ch:char,value:&K){
-		println!("insert char: {} with KEY",ch);
-		unsafe{C += 1;}
+		//println!("insert char: {} with KEY",ch);
+		//unsafe{C += 1;}
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -202,11 +96,11 @@ where K: Clone
 	}
 
 	pub fn mut_travel(&mut self,chs:&mut Peekable<Chars>)->&mut Trie<K>{
-		println!("searching with: {:?}",chs);
+		//println!("searching with: {:?}",chs);
 		let mut head: &mut Trie<K> = self;
 		loop{
 			if let Some(ch) = chs.peek(){
-				println!("{} == {}",ch, &head.ch);
+				//println!("{} == {}",ch, &head.ch);
 				if ch > &head.ch{
 					if head.right.is_none(){
 						return head;
@@ -234,28 +128,6 @@ where K: Clone
 				return head;
 			}
 		}
-		/*
-		while let Some(branch) = head{
-			if let Some(ch) = chs.peek(){
-				//println!("{} == {}",ch, &branch.ch);
-				if ch > &branch.ch{
-					head = branch.right.as_deref_mut();
-				} 
-				else if ch < &branch.ch{
-					head = branch.left.as_deref_mut();
-				}
-				else{
-					chs.next();
-					if chs.peek().is_none(){ //chegou-se no fim da palavra
-						break; 
-					}
-					head = branch.mid.as_deref_mut();
-				}
-			}else{
-				break;
-			}
-		}
-		*/
 	}
 
 	pub fn peek_travel(&self,chs:&mut Peekable<Chars>)->&Branch<K>{
@@ -353,14 +225,18 @@ mod tests{
 	#[test]
 	fn init_trie(){
 		let v1 = (String::from("carro"),1);
-		let mut trie = Trie::init(&v1.0, v1.1);
+		let mut trie:Trie<i32> = Trie::init();
+		trie.insert_str(&v1.0,& v1.1);
+
+		let mut trie:Branch<i32> = trie.right.take();
+
 		let mut word = "carro".chars();
 
-		assert!(trie.mid.is_some());
-		while let Some(mid) = trie.mid.take(){
+		while let Some(mut mid) = trie{
 			let ch = word.next().unwrap();
 			println!("{} == {}",mid.ch,ch);
 			assert_eq!(mid.ch,ch);
+			trie = mid.mid.take();
 		}
 	}
 	#[test]
@@ -371,7 +247,8 @@ mod tests{
 		let v4 = (String::from("erro"),4);
 		let v5 = (String::from("abaco"),5);
 
-		let mut trie = Trie::init(&v1.0, v1.1);
+		let mut trie = Trie::init();
+		trie.insert_str(&v1.0, &v1.1);
 		trie.insert_str(&v2.0, &v2.1);
 		trie.insert_str(&v3.0, &v3.1);
 		trie.insert_str(&v4.0, &v4.1);
@@ -400,7 +277,8 @@ mod tests{
 		let v3 = (String::from("cramunhão"),3);
 		let v4 = (String::from("capitão"),4);
 
-		let mut trie = Trie::init(&v1.0, v1.1);
+		let mut trie = Trie::init();
+		trie.insert_str(&v1.0, &v1.1);
 		trie.insert_str(&v2.0, &v2.1);
 		trie.insert_str(&v3.0, &v3.1);
 		trie.insert_str(&v4.0, &v4.1);
