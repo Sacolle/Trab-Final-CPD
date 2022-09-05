@@ -34,7 +34,7 @@ where K: Clone
 	}
 
 	fn _insert_str(mut head: &mut Trie<K>,chs:&mut Peekable<Chars>,value: &K){
-		//inserindo uma a parte de uma palavra que já existia
+		//inserindo uma parte de uma palavra que já existia
 		if chs.peek().is_none(){
 			head.value = Some(value.clone());
 			return;
@@ -124,8 +124,8 @@ where K: Clone
 					head = head.mid.as_deref_mut().unwrap();
 				}
 			}else{
-				println!("should not get here teoreticaly");
-				return head;
+				panic!("Não deveria chegar aqui");
+				//return head;
 			}
 		}
 	}
