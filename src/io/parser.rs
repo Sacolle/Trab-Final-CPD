@@ -41,6 +41,7 @@ pub struct User{
 	pub ratings: Vec<(usize,f64)>
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct SerdeTag{
 	user_id: usize,

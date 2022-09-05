@@ -39,7 +39,6 @@ where K: Clone
 			head.value = Some(value.clone());
 			return;
 		}
-		
 		let f_ch = chs.next().unwrap();
 
 		//a função mut_travel retorna o nó anterior ao fim,
@@ -48,31 +47,16 @@ where K: Clone
 			return;
 		}
 
-		if f_ch > head.ch{
-			//right
-			if chs.peek().is_none(){
-				Trie::_insert_ch_with_key(&mut head.right, f_ch, value);
-			}else{
-				Trie::_insert_ch(&mut head.right, f_ch);
-			}
-			head = head.right.as_deref_mut().unwrap();
-		}else if f_ch < head.ch{
-			//left
-			if chs.peek().is_none(){
-				Trie::_insert_ch_with_key(&mut head.left, f_ch, value);
-			}else{
-				Trie::_insert_ch(&mut head.left, f_ch);
-			}
-			head = head.left.as_deref_mut().unwrap();
+		let n_head = if f_ch > head.ch{ &mut head.right }
+		else if f_ch < head.ch{ &mut head.left }
+		else{ &mut head.mid };
+
+		if chs.peek().is_none(){
+			Trie::_insert_ch_with_key( n_head, f_ch, value);
 		}else{
-			//mid
-			if chs.peek().is_none(){
-				Trie::_insert_ch_with_key(&mut head.mid, f_ch, value);
-			}else{
-				Trie::_insert_ch(&mut head.mid, f_ch);
-			}
-			head = head.mid.as_deref_mut().unwrap();
+			Trie::_insert_ch( n_head, f_ch);
 		}
+		head = n_head.as_deref_mut().unwrap();
 
 		while let Some(ch) = chs.next(){
 			if !head.mid.is_none(){
