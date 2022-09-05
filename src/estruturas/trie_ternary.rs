@@ -12,6 +12,7 @@ where K: Clone
 }
 type Branch<K> = Option<Box<Trie<K>>>;
 
+static mut C:i32 = 0;
 
 impl<K> Trie<K>
 where K: Clone 
@@ -47,6 +48,7 @@ where K: Clone
 
 	fn _insert_str(mut head:Option<&mut Trie<K>>,chs:&mut Peekable<Chars>,value: &K){
 		while let Some(branch) = head{
+		unsafe{println!("count: {}",C)}
 			if let Some(_ch) = chs.peek(){
 				let ch = *_ch;
 				chs.next();
@@ -82,13 +84,14 @@ where K: Clone
 					}
 				}
 			}else{
-				println!("nunca vai chegar aqui {}",branch.ch);
+				//println!("nunca vai chegar aqui {}",branch.ch);
 				break;
 			}
 		}
 	}
 	fn _insert_ch(head:&mut Branch<K>,ch:char){
-		//println!("inserted {}",ch);
+		//print!("in ");
+		unsafe{C += 1;}
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -99,7 +102,8 @@ where K: Clone
 		*head = Some(Box::new(next));
 	}
 	fn _insert_ch_with_key(head:&mut Branch<K>,ch:char,value:&K){
-		//println!("inserted {} and key",ch);
+		//print!("key ");
+		unsafe{C += 1;}
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -109,7 +113,7 @@ where K: Clone
 		};
 		*head = Some(Box::new(next));
 	}
-	fn peek_travel(&self,chs:&mut Peekable<Chars>)->&Branch<K>{
+	pub fn peek_travel(&self,chs:&mut Peekable<Chars>)->&Branch<K>{
 		let first_ch = chs.next().unwrap();
 
 		let mut head = if first_ch > self.ch {

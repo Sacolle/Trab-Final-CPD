@@ -1,5 +1,7 @@
 use crate::estruturas::{
-	hash_table::{HashTable,hash_usize,hash_string},
+	hash_table::{HashTable,
+		utils::{hash_usize,hash_string,divide_raiting}
+	},
 	trie_ternary::Trie
 };
 
@@ -14,7 +16,7 @@ use std::error::Error;
 struct SerdePlayer{
 	sofifa_id:usize,
 	name: String,
-	player_position: String
+	player_positions: String
 }
 
 #[derive(Debug)]
@@ -30,7 +32,7 @@ pub struct Player{
 struct SerdeUser{
 	user_id:usize,
 	sofifa_id: usize,
-	raiting: f64
+	rating: f64
 }
 
 #[derive(Debug)]
@@ -51,7 +53,7 @@ impl Player{
 		Player {
 			id: player.sofifa_id,
 			name: player.name,
-			positions: player.player_position,
+			positions: player.player_positions,
 			rating: 0.0,
 			count: 0
 		}
@@ -66,11 +68,11 @@ impl User{
 	fn new(raiting: SerdeUser)->Self{
 		User{
 			id: raiting.user_id,
-			ratings: vec![(raiting.sofifa_id,raiting.raiting)]
+			ratings: vec![(raiting.sofifa_id,raiting.rating)]
 		}
 	}
 	fn add(&mut self, raiting: SerdeUser){
-		self.ratings.push((raiting.sofifa_id,raiting.raiting));
+		self.ratings.push((raiting.sofifa_id,raiting.rating));
 	} 
 }
 
@@ -96,7 +98,7 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 	}
 
 	//lê o csv dos users
-	let mut rdr = Reader::from_path("data/raitings.csv")?;
+	let mut rdr = Reader::from_path("data/rating.csv")?;
 	let raitings = rdr.deserialize::<SerdeUser>();
 
 	for _raiting in raitings {
@@ -104,7 +106,7 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 
 		//adiciona as avaliações ao estruct de player
 		if let Some(player) = player_table.get_mut(&raiting.sofifa_id){
-			player.add(raiting.raiting);
+			player.add(raiting.rating);
 		}
 
 		//adicionar as avaliações do user a tabela
@@ -115,6 +117,9 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 			user_table.insert(user.id, user);
 		}
 	}
+
+	divide_raiting(&mut player_table);
+
 	Ok((player_table, user_table, trie))
 }
 
@@ -137,3 +142,4 @@ pub fn parse_tags() -> Result<HashTable<String,Vec<usize>>,Box<dyn Error>>{
 	}
 	Ok(tags_table)
 }
+

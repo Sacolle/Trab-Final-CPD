@@ -89,19 +89,48 @@ where K: PartialEq
 		}
     }
 }
+pub mod utils{
+	use crate::io::parser::Player;
+	use super::HashTable;
 
-pub fn hash_usize(key:&usize,size:usize)->usize{
-	key%size
-}
-
-pub fn hash_string(key:&String,size:usize)->usize{
-	// p = 31
-	let mut hash:usize = 0;
-	for byte in key.as_bytes(){
-		hash = (31 * hash + *byte as usize) % size
+	pub fn hash_usize(key:&usize,size:usize)->usize{
+		key%size
 	}
-	hash
+
+	pub fn hash_string(key:&String,size:usize)->usize{
+		// p = 31
+		let mut hash:usize = 0;
+		for byte in key.as_bytes(){
+			hash = (31 * hash + *byte as usize) % size
+		}
+		hash
+	}
+
+	pub fn divide_raiting(table: &mut HashTable<usize,Player>){
+		for _link in table.vec.iter_mut(){
+			let mut link = _link;
+			while let Some(node) = link{
+				node.value.rating /= node.value.count as f64;
+				link = &mut node.next;
+			}
+		}
+	}
+
+	pub fn entries(table: &HashTable<usize,Player>){
+		let mut entries = 0;
+		for _link in table.vec.iter(){
+			let mut link = _link;
+			while let Some(node) = link{
+				entries += 1;
+				link = &node.next;
+			}
+		}
+		println!("O numero de jogadores é {}",entries);
+	}
+
 }
+
+
 
 
 #[cfg(test)]
