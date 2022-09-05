@@ -8,7 +8,6 @@ use crate::io::{
 	//parser::{ User, Player}
 };
 
-
 use std::{error,time};
 
 fn main() {
