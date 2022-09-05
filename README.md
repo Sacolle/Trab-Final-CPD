@@ -6,7 +6,16 @@ Elementos a serem implementados
 	- ~~criação dos structs~~
 	- ~~inclusão da média das avaliações~~
 	- ~~inicialização das HashTables~~
-	- Inicialização da Trie
+	- ~~Inicialização da Trie~~
+- Implementação dos Queries
+	- ~~Player Search~~
+	- ~~User Search~~
+	- Position Search
+	- Tag Search
 - Implementação da CLI usando a biblioteca [dialoguer](https://github.com/mitsuhiko/dialoguer) e [ansi_term](https://github.com/ogham/rust-ansi-term)
 	- ~~CLI~~
 	- Display do output dos Queries
+		- ~~Player Search~~
+		- ~~User Search~~
+		- Position Search
+		- Tag Search
