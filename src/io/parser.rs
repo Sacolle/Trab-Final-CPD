@@ -81,8 +81,7 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 	let mut player_table: HashTable<usize, Player> = HashTable::new(25000,hash_usize);
 	let mut user_table: HashTable<usize, User> = HashTable::new(25000,hash_usize);
 	
-	//Não vou mentir, isso eh meio q u hackizinho pq eu não quero reescrever a trie para poder inicializar ela nula
-	let mut trie: Trie<usize> = Trie::init("Lionel Andrés Messi Cuccittini", 0);
+	let mut trie: Trie<usize> = Trie::init();
 
 	//lê o csv dos players
 	let mut rdr = Reader::from_path("data/players.csv")?;
