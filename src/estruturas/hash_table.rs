@@ -1,3 +1,7 @@
+/*
+* Hashtable implementada com a resolução de confitos com encadeamento fechado
+* Usando uma lista encadeada para isso
+*/
 pub struct HashTable<K,T>
 where K: PartialEq
 {
@@ -15,18 +19,13 @@ pub struct Node<K,T>{
 impl<K,T> HashTable<K,T>
 where K: PartialEq
 {
-	pub fn new(
-		size:usize,
-		hash_function: impl for<'a>Fn(&'a K,usize)->usize + 'static
-	)->Self
-	{
+	pub fn new(size:usize,hash_function: impl for<'a>Fn(&'a K,usize)->usize + 'static)->Self {
 		let mut vec = Vec::with_capacity(size);
 		vec.resize_with(size, ||None);
 
 		let hash = Box::new(hash_function);
 		HashTable { vec, hash, size }
 	}
-
 	pub fn insert(&mut self,key: K,value: T){
 		let idx = (self.hash)(&key,self.size);
 		let head = &mut self.vec[idx];
@@ -40,6 +39,7 @@ where K: PartialEq
 		);
 		*head = Some(new_node);
 	}
+	//retorna uma referencia imutável a um elemento
 	pub fn get(&self,key: &K)->Option<&T>{
 		let idx = (self.hash)(key,self.size);
 		let mut head = &self.vec[idx];
@@ -52,6 +52,7 @@ where K: PartialEq
 		}
 		None
 	}
+	//retorna uma referencia mutável a um elemento
 	pub fn get_mut(&mut self,key: &K)->Option<&mut T>{
 		let idx = (self.hash)(key,self.size);
 		let mut head = &mut self.vec[idx];
@@ -64,9 +65,9 @@ where K: PartialEq
 		}
 		None
 	}
+	//função helper que retorna um vetor com todos os elementos da table 
 	pub fn all(&self)->Vec<&T>{
 		let mut res = Vec::new();
-
 		for lists in self.vec.iter(){
 			let mut cur_link = lists.as_ref();
 			while let Some(b_node) = cur_link {
@@ -76,9 +77,9 @@ where K: PartialEq
 		}
 		res
 	}
+	//função helper para ver quantos elementos tem na table
 	pub fn _entries(&self)->usize{
 		let mut res = 0;
-
 		for lists in self.vec.iter(){
 			let mut cur_link = lists.as_ref();
 			while let Some(b_node) = cur_link {
@@ -88,51 +89,7 @@ where K: PartialEq
 		}
 		res
 	}
-	/* 
-	pub fn iter(&self)->Iter<'_,K,T>{
-		let mut i = 0;
-		let next = loop{
-			if self.vec[i].is_some(){
-				break self.vec[i].as_deref();
-			}else{
-				i += 1;
-			}
-		};
-		Iter { 
-			pos: i,
-			vec: &self.vec,
-			next 
-		}
-	} */
 }
-/*
-pub struct Iter<'a,K,T>{
-	pos: usize,
-	vec: &'a Vec<Link<K,T>>,
-	next: Option<&'a Node<K,T>>
-}
-
-impl<'a,K,T> Iterator for Iter<'a,K,T>{
-	type Item = &'a Node<K,T>;
-	
-	fn next(&mut self) -> Option<Self::Item> {
-		if let Some(node) = self.next{
-
-		}else{
-			while let None = loop{
-				if self.vec[self.pos].is_some(){
-					break self.vec[self.pos].as_deref(); 
-				}else{
-					self.pos += 1;
-				}
-			}{
-				
-			}
-		}
-	}
-}
-*/
-
 impl<K,T> Drop for HashTable<K,T>
 where K: PartialEq
 {
@@ -149,11 +106,10 @@ where K: PartialEq
 pub mod utils{
 	use crate::io::parser::Player;
 	use super::HashTable;
-
+	//funções de hash para a table
 	pub fn hash_usize(key:&usize,size:usize)->usize{
 		key%size
 	}
-
 	pub fn hash_string(key:&String,size:usize)->usize{
 		// p = 31
 		let mut hash:usize = 0;
@@ -162,7 +118,7 @@ pub mod utils{
 		}
 		hash
 	}
-
+	//função helper para converter o raiting acumulado do player para o raiting médio
 	pub fn divide_raiting(table: &mut HashTable<usize,Player>){
 		for _link in table.vec.iter_mut(){
 			let mut link = _link;
@@ -172,22 +128,7 @@ pub mod utils{
 			}
 		}
 	}
-
-	pub fn _entries(table: &HashTable<usize,Player>){
-		let mut entries = 0;
-		for _link in table.vec.iter(){
-			let mut link = _link;
-			while let Some(node) = link{
-				entries += 1;
-				link = &node.next;
-			}
-		}
-		println!("O numero de jogadores é {}",entries);
-	}
-
 }
-
-
 
 
 #[cfg(test)]

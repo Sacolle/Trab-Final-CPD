@@ -1,6 +1,5 @@
 use std::{str::Chars, iter::Peekable};
 
-
 pub struct Trie<K>
 where K: Clone 
 {
@@ -15,6 +14,7 @@ type Branch<K> = Option<Box<Trie<K>>>;
 impl<K> Trie<K>
 where K: Clone 
 {
+	//inicia a raiz com um char de valor ' '
 	pub fn init()->Self{
 		let trie:Trie<K> = Trie{
 			left:None,
@@ -25,32 +25,32 @@ where K: Clone
 		};
 		trie
 	}
-
+	//insere uma palavra a árvore
 	pub fn insert_str(&mut self, word:&str, value: &K){
 		if word.is_empty(){return;}
 		let mut chs = word.chars().peekable();
+		//caminha pela árvore dadas as letras até a posição a inserir
 		let insert_node = Trie::mut_travel(self, &mut chs);
 		Trie::_insert_str(insert_node, &mut chs, value);
 	}
-
 	fn _insert_str(mut head: &mut Trie<K>,chs:&mut Peekable<Chars>,value: &K){
 		//inserindo uma parte de uma palavra que já existia
 		if chs.peek().is_none(){
 			head.value = Some(value.clone());
 			return;
 		}
+		//obtem a letra atual e move o iterador
 		let f_ch = chs.next().unwrap();
-
 		//a função mut_travel retorna o nó anterior ao fim,
 		//nesse caso caso tente-se inserir uma palavra q já exista, um nó adicional ao fim seria colocado.
 		if chs.peek().is_none() && head.value.is_some(){
 			return;
 		}
-
+		//obtem o a direção do caminho
 		let n_head = if f_ch > head.ch{ &mut head.right }
 		else if f_ch < head.ch{ &mut head.left }
 		else{ &mut head.mid };
-
+		//se não há letras para inserir, insere com chave, se não insere a letra sem chave na direção
 		if chs.peek().is_none(){
 			Trie::_insert_ch_with_key( n_head, f_ch, value);
 		}else{
@@ -59,9 +59,11 @@ where K: Clone
 		head = n_head.as_deref_mut().unwrap();
 
 		while let Some(ch) = chs.next(){
+			//nesse momento se encontra em um nó com o elemento do meio vazio
 			if !head.mid.is_none(){
 				panic!("erro na função mut_travel ou logcia está errada");
 			}
+			//insere-se nós no meio em sequência até o fim da palavra, adicionado a chave caso seja a última letra
 			if chs.peek().is_none(){
 				Trie::_insert_ch_with_key(&mut head.mid, ch, value);
 			}else{
@@ -71,8 +73,6 @@ where K: Clone
 		}
 	}
 	fn _insert_ch(head:&mut Branch<K>,ch:char){
-		//println!("insert char: {}",ch);
-		//unsafe{C += 1;}
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -83,8 +83,6 @@ where K: Clone
 		*head = Some(Box::new(next));
 	}
 	fn _insert_ch_with_key(head:&mut Branch<K>,ch:char,value:&K){
-		//println!("insert char: {} with KEY",ch);
-		//unsafe{C += 1;}
 		let next:Trie<K> = Trie{
 			left:None,
 			mid:None,
@@ -94,13 +92,12 @@ where K: Clone
 		};
 		*head = Some(Box::new(next));
 	}
-
+	//retorna uma referência mutável a um nó
 	pub fn mut_travel(&mut self,chs:&mut Peekable<Chars>)->&mut Trie<K>{
-		//println!("searching with: {:?}",chs);
 		let mut head: &mut Trie<K> = self;
 		loop{
+			//percorre a árvore até que ou não haja mais caracteres ou uma direção tomada não tenha valor
 			if let Some(ch) = chs.peek(){
-				//println!("{} == {}",ch, &head.ch);
 				if ch > &head.ch{
 					if head.right.is_none(){
 						return head;
@@ -125,13 +122,12 @@ where K: Clone
 				}
 			}else{
 				panic!("Não deveria chegar aqui");
-				//return head;
 			}
 		}
 	}
-
+	//retorna uma referência imutável ao percorrer
 	pub fn peek_travel(&self,chs:&mut Peekable<Chars>)->&Branch<K>{
-		//println!("searching with: {:?}",chs);
+		//percorre a cabeça da árvore
 		let first_ch = chs.peek().unwrap();
 		let mut head = if *first_ch > self.ch {
 			&self.right
@@ -141,9 +137,11 @@ where K: Clone
 			chs.next();
 			&self.mid
 		};
+		//enquanto houver nó na direção determinada
 		while let Some(branch) = head{
+			//e se houver letras na palavra
 			if let Some(ch) = chs.peek(){
-				//println!("{} == {}",ch, &branch.ch);
+				//escolhe-se o nó da árvore
 				if ch > &branch.ch{
 					head = &branch.right;
 				} 
@@ -151,6 +149,7 @@ where K: Clone
 					head = &branch.left;
 				}
 				else{
+					//se for no meio move-se o iterador
 					chs.next();
 					if chs.peek().is_none(){ //chegou-se no fim da palavra
 						break; 
@@ -163,6 +162,7 @@ where K: Clone
 		}
 		head //chegou-se no fim da corrente
 	}
+	//retorna o valor de uma palavra na árvore, se houver, não usada na codebase
 	#[allow(dead_code)]
 	pub fn get(&self,word:&str)->Option<&K>{
 		let mut chs = word.chars().peekable();
@@ -174,10 +174,13 @@ where K: Clone
 		}
 		None
 	}
+	//retorna todas os ids abaixo da árvore do nodo correspondente ao fim da palavra
 	pub fn get_prefix(&self,word:&str)->Vec<K>{
 		let mut res:Vec<K> = Vec::new();
 		let mut chs = word.chars().peekable();
+		//percorre a árvore no caminho da palavra
 		if let Some(head) = Trie::peek_travel(&self, &mut chs){
+			//retorna todos valores do nodo abaixo e dos demais abaixo desse
 			if let Some(mid_head) = &head.mid{
 				if let Some(val) = &head.value{
 					res.push(val.clone());

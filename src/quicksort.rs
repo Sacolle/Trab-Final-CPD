@@ -1,5 +1,6 @@
 use crate::io::parser::Player;
 
+//uso da implementação do quicksort usando a partição de lomuto com o pivô ao fim
 pub fn quicksort<T: PartialOrd + Clone>(vec:&mut Vec<T>){
 	let last = vec.len() - 1;
 	sort(vec.as_mut_slice(), 0, last);
@@ -29,6 +30,8 @@ fn lomuto<T: PartialOrd + Clone>(vec: &mut [T],i:usize,f:usize)->usize{
 	vec[j] = x;
 	j
 }
+
+//implementação de ordenamento ao player
 impl PartialOrd for Player{
 	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
 		if self.rating <= other.rating{

@@ -1,16 +1,18 @@
 use crate::estruturas::{
-	hash_table::{HashTable,
-		utils::{hash_usize,hash_string,divide_raiting}
-	},
+	hash_table::{HashTable, utils },
 	trie_ternary::Trie
 };
-
-
 
 use serde::Deserialize;
 use csv::Reader;
 
 use std::error::Error;
+
+/*
+* uso da blioteca CSV e SERDE para realizar a leitura e parse dos csvs
+* em structs iniciados por Serde(...).
+* essas info são passadas para outros structs que são armazenados nas estruturas
+*/
 
 #[derive(Deserialize)]
 struct SerdePlayer{
@@ -85,10 +87,9 @@ pub fn parse_player_and_user()->Result<(
 		Trie<usize>
 	),Box<dyn Error>>
 	{
-
-	let mut player_table: HashTable<usize, Player> = HashTable::new(25000,hash_usize);
-	let mut user_table: HashTable<usize, User> = HashTable::new(25000,hash_usize);
-	let mut pos_table: HashTable<String, Vec<usize>> = HashTable::new(20,hash_string);
+	let mut player_table: HashTable<usize, Player> = HashTable::new(25000,utils::hash_usize);
+	let mut user_table: HashTable<usize, User> = HashTable::new(25000,utils::hash_usize);
+	let mut pos_table: HashTable<String, Vec<usize>> = HashTable::new(20,utils::hash_string);
 
 	let mut trie: Trie<usize> = Trie::init();
 
@@ -98,7 +99,6 @@ pub fn parse_player_and_user()->Result<(
 
 	for p in players {
 		let player = Player::new(p?);
-
 		//inserção na hashtable das posições
 		player.positions
 			.split(',')
@@ -110,10 +110,9 @@ pub fn parse_player_and_user()->Result<(
 					pos_table.insert(p, vec![player.id]);
 				}
 			});
-		
 		//inserção do player na trie
 		trie.insert_str(&player.name, &player.id);
-
+		//inserção do player na hashtable
 		player_table.insert(player.id, player);
 	}
 
@@ -129,23 +128,24 @@ pub fn parse_player_and_user()->Result<(
 			player.add(raiting.rating);
 		}
 
-		//adicionar as avaliações do user a tabela
+		//se o id de um usuário ja existe na tablela, adiciona a avaliação ao seu vetor de avalizações
 		if let Some(user) = user_table.get_mut(&raiting.user_id){
 			user.add(raiting);
 		}else{
+			//senão o inicia e coloca na hashtable
 			let user = User::new(raiting);
 			user_table.insert(user.id, user);
 		}
 	}
-
-	divide_raiting(&mut player_table);
+	//função que passa por todos os players da hashtable de players, divindo o seu raiting pelo seu count
+	utils::divide_raiting(&mut player_table);
 
 	Ok((player_table, user_table, pos_table, trie))
 }
 
 
 pub fn parse_tags() -> Result<HashTable<String,HashTable<usize,usize>>,Box<dyn Error>>{
-	let mut tags_table:HashTable<String,HashTable<usize,usize>> = HashTable::new(100,hash_string);
+	let mut tags_table:HashTable<String,HashTable<usize,usize>> = HashTable::new(100,utils::hash_string);
 
 	let mut rdr = Reader::from_path("data/tags.csv")?;
 	let tags = rdr.deserialize::<SerdeTag>();
@@ -153,12 +153,15 @@ pub fn parse_tags() -> Result<HashTable<String,HashTable<usize,usize>>,Box<dyn E
 	for _tag_row in tags {
 		let tag_row = _tag_row?;
 
+		//se a tag existe na table,
 		if let Some(tag) = tags_table.get_mut(&tag_row.tag){
+			//checa-se se id do player não existe na tabela, se não, insere o id do player
 			if let None = tag.get(&tag_row.sofifa_id){
 				tag.insert(tag_row.sofifa_id,tag_row.sofifa_id);
 			}
 		}else{
-			tags_table.insert(tag_row.tag, HashTable::new(1000, hash_usize));
+			//se a tag não existe insere a tag com uma tabela correspondente
+			tags_table.insert(tag_row.tag, HashTable::new(1000,utils::hash_usize));
 		}
 	}
 	Ok(tags_table)
