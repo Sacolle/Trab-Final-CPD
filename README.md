@@ -19,4 +19,5 @@ Elementos a serem implementados
 		- ~~User Search~~
 		- ~~Position Search~~
 		- ~~Tag Search~~
-	- Estilizar os outputs
+
+O projeto se encontra completo no momento.
