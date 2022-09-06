@@ -10,12 +10,13 @@ Elementos a serem implementados
 - Implementação dos Queries
 	- ~~Player Search~~
 	- ~~User Search~~
-	- Position Search
-	- Tag Search
+	- ~~Position Search~~
+	- ~~Tag Search~~
 - Implementação da CLI usando a biblioteca [dialoguer](https://github.com/mitsuhiko/dialoguer) e [ansi_term](https://github.com/ogham/rust-ansi-term)
 	- ~~CLI~~
 	- Display do output dos Queries
 		- ~~Player Search~~
 		- ~~User Search~~
-		- Position Search
-		- Tag Search
+		- ~~Position Search~~
+		- ~~Tag Search~~
+	- Estilizar os outputs
