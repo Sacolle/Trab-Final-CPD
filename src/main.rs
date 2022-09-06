@@ -1,5 +1,6 @@
 mod estruturas;
 mod io;
+mod quicksort;
 
 use crate::io::{
 	tui, tui::Act,
@@ -23,15 +24,16 @@ fn program_loop()->Result<(),Box<dyn error::Error>>{
 
 	let (player_table,
 		user_table,
+		pos_table,
 		player_trie) = parse_player_and_user()?;
 
-	let _tags_table = parse_tags()?;
+	let tags_table = parse_tags()?;
 
 	disp::display_time_elapsed(timer.elapsed());
 
-	crate::estruturas::hash_table::utils::entries(&player_table);
+	//crate::estruturas::hash_table::utils::entries(&player_table);
 
-	loop{
+	'outer: loop{
 		match tui::get_action()? {
 			Act::NameSearch(player_name) => {
 				disp::head_row_player();
@@ -56,10 +58,55 @@ fn program_loop()->Result<(),Box<dyn error::Error>>{
 				}
 			},
 			Act::TopPosition(amount ,position) => {
-				println!("Top{} position: {}",amount,position);
+				if let Some(ids) = pos_table.get(&position){
+					disp::head_row_player();
+					let mut players = Vec::new();
+					for id in ids{
+						if let Some(player) = player_table.get(id){
+							players.push(player);
+						} 
+					}
+					crate::quicksort::quicksort(&mut players);
+
+					for player in players.into_iter().take(amount){
+						disp::display_row_player(player);
+					}
+				}else{
+					println!("Posição não reconhecida: {}",position);
+				}
 			},
 			Act::SearchTags(tags) => {
-				println!("tags: {:?}",tags);
+				if tags.is_empty(){
+					println!("Insira uma tag:");
+					continue;
+				}
+				disp::head_row_player();
+
+				let mut tables = Vec::new();
+				for tag in tags.iter(){
+					if let Some(ids) = tags_table.get(tag){
+						tables.push(ids);
+					}else{
+						println!("Tag: {} é inválida",tag);
+						continue 'outer;
+					}
+				}
+				let first_table = tables.get(0).unwrap().all();
+
+				for id in first_table{
+					let mut inserct = true;
+					for t in tables.iter().skip(1){
+						if t.get(id).is_none(){
+							inserct = false;
+							break;
+						}		
+					}
+					if inserct{
+						if let Some(p) = player_table.get(id){
+							disp::display_row_player(p);
+						}
+					}
+				}
 			},
 			Act::Exit => {
 				return Ok(());

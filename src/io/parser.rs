@@ -19,7 +19,7 @@ struct SerdePlayer{
 	player_positions: String
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Player{
 	pub id: usize,
 	pub name: String,
@@ -49,6 +49,7 @@ struct SerdeTag{
 	tag: String
 }
 
+//posíveis posições: {"LW", "LM", "CM", "CDM", "LB", "GK", "RB", "RM", "RWB", "CB", "CAM", "ST", "LWB", "CF", "RW"}
 impl Player{
 	fn new(player:SerdePlayer)-> Self{
 		Player {
@@ -77,20 +78,39 @@ impl User{
 	} 
 }
 
+pub fn parse_player_and_user()->Result<(
+		HashTable<usize, Player>,
+		HashTable<usize, User>,
+		HashTable<String, Vec<usize>>,
+		Trie<usize>
+	),Box<dyn Error>>
+	{
 
-pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usize, User>, Trie<usize>),Box<dyn Error>>{
 	let mut player_table: HashTable<usize, Player> = HashTable::new(25000,hash_usize);
 	let mut user_table: HashTable<usize, User> = HashTable::new(25000,hash_usize);
-	
+	let mut pos_table: HashTable<String, Vec<usize>> = HashTable::new(20,hash_string);
+
 	let mut trie: Trie<usize> = Trie::init();
 
 	//lê o csv dos players
 	let mut rdr = Reader::from_path("data/players.csv")?;
 	let players = rdr.deserialize::<SerdePlayer>();
 
-	for _player in players {
-		let player = Player::new(_player?);
+	for p in players {
+		let player = Player::new(p?);
 
+		//inserção na hashtable das posições
+		player.positions
+			.split(',')
+			.map(|v|v.trim().to_owned())
+			.for_each(|p|{
+				if let Some(pos) = pos_table.get_mut(&p){
+					pos.push(player.id);
+				}else{
+					pos_table.insert(p, vec![player.id]);
+				}
+			});
+		
 		//inserção do player na trie
 		trie.insert_str(&player.name, &player.id);
 
@@ -120,12 +140,12 @@ pub fn parse_player_and_user()->Result<(HashTable<usize, Player>, HashTable<usiz
 
 	divide_raiting(&mut player_table);
 
-	Ok((player_table, user_table, trie))
+	Ok((player_table, user_table, pos_table, trie))
 }
 
 
-pub fn parse_tags() -> Result<HashTable<String,Vec<usize>>,Box<dyn Error>>{
-	let mut tags_table:HashTable<String, Vec<usize>> = HashTable::new(100,hash_string);
+pub fn parse_tags() -> Result<HashTable<String,HashTable<usize,usize>>,Box<dyn Error>>{
+	let mut tags_table:HashTable<String,HashTable<usize,usize>> = HashTable::new(100,hash_string);
 
 	let mut rdr = Reader::from_path("data/tags.csv")?;
 	let tags = rdr.deserialize::<SerdeTag>();
@@ -133,11 +153,12 @@ pub fn parse_tags() -> Result<HashTable<String,Vec<usize>>,Box<dyn Error>>{
 	for _tag_row in tags {
 		let tag_row = _tag_row?;
 
-		//adicionar as avaliações do user a tabela
 		if let Some(tag) = tags_table.get_mut(&tag_row.tag){
-			tag.push(tag_row.sofifa_id);
+			if let None = tag.get(&tag_row.sofifa_id){
+				tag.insert(tag_row.sofifa_id,tag_row.sofifa_id);
+			}
 		}else{
-			tags_table.insert(tag_row.tag, vec![tag_row.sofifa_id]);
+			tags_table.insert(tag_row.tag, HashTable::new(1000, hash_usize));
 		}
 	}
 	Ok(tags_table)

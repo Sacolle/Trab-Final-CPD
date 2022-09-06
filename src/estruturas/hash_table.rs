@@ -6,7 +6,7 @@ where K: PartialEq
 	size: usize
 }
 type Link<K,T> = Option<Box<Node<K,T>>>;
-struct Node<K,T>{
+pub struct Node<K,T>{
 	key: K,
 	value: T,
 	next: Link<K,T>
@@ -64,17 +64,74 @@ where K: PartialEq
 		}
 		None
 	}
-	/*
-    pub fn remove(&mut self,key: K){
-		let idx = (self.hash)(&key,self.size);
-		let head = &mut self.vec[idx];
-        
-		head.take().map(|node| {
-            *head = node.next;
-        });
-    }
-	*/
+	pub fn all(&self)->Vec<&T>{
+		let mut res = Vec::new();
+
+		for lists in self.vec.iter(){
+			let mut cur_link = lists.as_ref();
+			while let Some(b_node) = cur_link {
+				res.push(&b_node.value);
+				cur_link = b_node.next.as_ref();
+			}
+		}
+		res
+	}
+	pub fn _entries(&self)->usize{
+		let mut res = 0;
+
+		for lists in self.vec.iter(){
+			let mut cur_link = lists.as_ref();
+			while let Some(b_node) = cur_link {
+				res += 1;
+				cur_link = b_node.next.as_ref();
+			}
+		}
+		res
+	}
+	/* 
+	pub fn iter(&self)->Iter<'_,K,T>{
+		let mut i = 0;
+		let next = loop{
+			if self.vec[i].is_some(){
+				break self.vec[i].as_deref();
+			}else{
+				i += 1;
+			}
+		};
+		Iter { 
+			pos: i,
+			vec: &self.vec,
+			next 
+		}
+	} */
 }
+/*
+pub struct Iter<'a,K,T>{
+	pos: usize,
+	vec: &'a Vec<Link<K,T>>,
+	next: Option<&'a Node<K,T>>
+}
+
+impl<'a,K,T> Iterator for Iter<'a,K,T>{
+	type Item = &'a Node<K,T>;
+	
+	fn next(&mut self) -> Option<Self::Item> {
+		if let Some(node) = self.next{
+
+		}else{
+			while let None = loop{
+				if self.vec[self.pos].is_some(){
+					break self.vec[self.pos].as_deref(); 
+				}else{
+					self.pos += 1;
+				}
+			}{
+				
+			}
+		}
+	}
+}
+*/
 
 impl<K,T> Drop for HashTable<K,T>
 where K: PartialEq
@@ -116,7 +173,7 @@ pub mod utils{
 		}
 	}
 
-	pub fn entries(table: &HashTable<usize,Player>){
+	pub fn _entries(table: &HashTable<usize,Player>){
 		let mut entries = 0;
 		for _link in table.vec.iter(){
 			let mut link = _link;

@@ -50,7 +50,11 @@ pub fn get_action()->Result<Act,Box<dyn Error>>{
 		},
 		3 => {
 			let input = get_val("Insira as tags de busca")?;
-			let tags:Vec<String> = input.split(' ').map(|tag|tag.to_owned()).collect();
+			let tags:Vec<String> = input
+				.split('\'')
+				.map(|tag|tag.trim().to_owned())
+				.filter(|elem|!elem.is_empty())
+				.collect();
 			return Ok(Act::SearchTags(tags));
 		},
 		_ => return Ok(Act::Exit)
